@@ -103,5 +103,12 @@ header{
 /* Stats */
 #stats{
         display: flex;
-        justify-content:space-evenly;
+        justify-content:center;
+        gap: 0.3rem;
+}
+.stats{
+        padding: 1.4rem;
+        border: 1.2px solid black;
+        border-radius: 3px;
+        background-color: rgba(100, 153, 205, 0.264);
 }
