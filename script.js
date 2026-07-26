@@ -6,6 +6,9 @@ const totalCount = document.getElementById("total-count");
 const completedCount = document.getElementById("completed-count");
 const pendingCount = document.getElementById("pending-count");
 
+// Load Saved Data from Local Storage
+loadTasksFromLocalStorage();
+
 // Function to Add Task
 function addTask(){
 
@@ -18,42 +21,8 @@ function addTask(){
         return;
     }
 
-    // Step 3: Create Elements
-
-    // taskItem:
-    const taskItem = document.createElement("li");
-    taskItem.className ="task-item";
-
-    // taskContainer:
-    const taskContainer = document.createElement("div");
-    taskContainer.className = "task-container";
-
-    // checkBox:
-    const checkBox = document.createElement("input");
-    checkBox.type = "checkbox";
-    checkBox.className = "check";
-    checkBox.addEventListener("change", updateStats);
-
-    // taskName:
-    const taskName = document.createElement("span");
-    taskName.className = "task-name";
-    taskName.textContent = task;
-
-    // deleteBtn:
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "delete-btn";
-    deleteBtn.textContent = "❌";
-    deleteBtn.addEventListener("click", ()=> {
-        taskItem.remove();
-        updateStats();
-    });
-
-    //Step 4: Add Elements
-    taskContainer.appendChild(checkBox);
-    taskContainer.appendChild(taskName);
-    taskItem.appendChild(taskContainer);
-    taskItem.appendChild(deleteBtn);
-    taskList.appendChild(taskItem);
+    // Step 3: Create Element
+    createTaskElement(task, false);
 
     //Step 5: Refresh Input Box
     taskInput.value = "";
@@ -66,11 +35,15 @@ function addTask(){
 taskInput.addEventListener("keydown", (event)=>{
     if(event.key === "Enter"){
         addTask();
+        saveToLocalStorage();
     }
 });
 
 // Add Button Event Listener
-addBtn.addEventListener("click", addTask);
+addBtn.addEventListener("click", ()=> {
+    addTask();
+    saveToLocalStorage();
+});
 
 // Function to Update Stats
 function updateStats() {
@@ -84,3 +57,70 @@ function updateStats() {
 }
 
 // Function to Save tasks to Local Storage
+function saveToLocalStorage() {
+    const tasks = [];
+    const taskElements = Array.from(taskList.children);
+    taskElements.forEach((taskElement)=> {
+        const taskName = taskElement.querySelector(".task-name").textContent;
+        const isCompleted = taskElement.querySelector(".check").checked;
+        const task = {
+            name : taskName,
+            completed : isCompleted
+        };
+        tasks.push(task);
+    });
+    localStorage.setItem("taskStatus", JSON.stringify(tasks));
+}
+
+// Function to Create and Append Element
+function createTaskElement(task, isCompleted) {
+
+    // taskItem:
+    const taskItem = document.createElement("li");
+    taskItem.className ="task-item";
+
+    // taskContainer:
+    const taskContainer = document.createElement("div");
+    taskContainer.className = "task-container";
+
+    // checkBox:
+    const checkBox = document.createElement("input");
+    checkBox.type = "checkbox";
+    checkBox.className = "check";
+    checkBox.checked = isCompleted;
+    checkBox.addEventListener("change", ()=> {
+        saveToLocalStorage();
+        updateStats();
+    });
+
+    // taskName:
+    const taskName = document.createElement("span");
+    taskName.className = "task-name";
+    taskName.textContent = task;
+
+    // deleteBtn:
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-btn";
+    deleteBtn.textContent = "❌";
+    deleteBtn.addEventListener("click", ()=> {
+        taskItem.remove();
+        saveToLocalStorage();
+        updateStats();
+    });
+
+    //Step 4: Add Elements
+    taskContainer.appendChild(checkBox);
+    taskContainer.appendChild(taskName);
+    taskItem.appendChild(taskContainer);
+    taskItem.appendChild(deleteBtn);
+    taskList.appendChild(taskItem);
+}
+
+// Function to Load Saved Data from Local Storage
+function loadTasksFromLocalStorage() {
+    const savedTasks = JSON.parse(localStorage.getItem("taskStatus")) || [];
+    savedTasks.forEach((task)=> {
+        createTaskElement(task.name, task.completed);
+    });
+    updateStats();
+}
